@@ -383,7 +383,8 @@ function mapGvizTable(table){
 
 async function fetchFilmsLive(){
   try{
-    var url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=" + encodeURIComponent(SHEET_TAB);
+    /* range를 명시적으로 지정 — gviz가 표 범위를 자동 인식하다가 이 파일에서 유독 실패하는 문제를 우회 */
+    var url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=" + encodeURIComponent(SHEET_TAB) + "&range=A1:S200";
     var res = await fetch(url, { mode: "cors" });
     if (!res.ok) throw new Error("bad response " + res.status);
     var text = await res.text();
