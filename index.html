@@ -332,22 +332,36 @@ function driveImg(url, size){
   return "https://lh3.googleusercontent.com/d/" + m[1] + (size ? ("=w" + size) : "");
 }
 
-/* CSV 방식(out:csv)이 이 시트에서 필드가 뒤섞여 나오는 문제가 있어 gviz의 JSON 응답(out:json)으로 방식을 변경 */
+/* CSV 방식(out:csv)이 이 시트에서 필드가 뒤섞여 나오는 문제가 있어 gviz의 JSON 응답(out:json)으로 방식을 변경.
+   gviz가 헤더 행을 자동 인식하지 못하면 cols[].label이 전부 비어있는 채로 올 수 있어서,
+   그런 경우 rows[0]의 실제 값을 헤더로 직접 사용하도록 이중으로 처리한다. */
 function mapGvizTable(table){
   var norm = function(s){ return (s || "").toString().trim().toLowerCase(); };
-  var header = table.cols.map(function(c){ return norm(c.label || c.id || ""); });
+  var cellRaw = function(row, i){
+    if (!row || !row.c || !row.c[i]) return "";
+    var v = row.c[i].v;
+    return (v === null || v === undefined) ? "" : String(v);
+  };
+
+  var header = table.cols.map(function(c){ return norm(c.label || ""); });
+  var dataRows = table.rows || [];
+  var headerLooksEmpty = header.every(function(h){ return h === ""; });
+
+  if (headerLooksEmpty && dataRows.length){
+    /* cols[].label이 비어있으면 gviz가 헤더 자동인식에 실패한 것 — rows[0]를 헤더로 대신 사용 */
+    header = dataRows[0].c.map(function(c, i){ return norm(c ? c.v : ""); });
+    dataRows = dataRows.slice(1);
+  }
+
   var idx = function(name){ return header.indexOf(norm(name)); };
   var idxAny = function(names){
     for (var n = 0; n < names.length; n++){ var i = idx(names[n]); if (i !== -1) return i; }
     return -1;
   };
-  var cell = function(row, i){
-    if (i === -1 || !row.c[i]) return "";
-    var v = row.c[i].v;
-    return (v === null || v === undefined) ? "" : String(v);
-  };
+  var cell = function(row, i){ return i === -1 ? "" : cellRaw(row, i); };
+
   var out = [];
-  (table.rows || []).forEach(function(row){
+  dataRows.forEach(function(row){
     if (!row || !row.c) return;
     var title = cell(row, idx("title"));
     if (!title) return;
