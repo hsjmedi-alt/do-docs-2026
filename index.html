@@ -66,13 +66,14 @@ button{font-family:inherit;}
 #intro{ position:fixed; inset:0; z-index:200; background:#15111a; display:flex; align-items:center; justify-content:center; transition:opacity .8s ease;
   cursor:url("./favicon-32x32.png") 16 16, pointer; overflow:hidden; }
 #intro.hide{ opacity:0; pointer-events:none; }
-.intro-bg{ position:absolute; inset:-4%; background-image:url("./halftone-bg.svg"); background-size:cover; background-position:center;
+.intro-bg{ position:absolute; inset:-4%; background-image:url("./intro-bg.png"); background-size:cover; background-position:center;
+  will-change:transform,opacity; transform:translateZ(0);
   opacity:0; transform:scale(1.06);
   animation: introBgIn 1s ease-out .05s forwards, introBgIdle 6s ease-in-out 1.05s infinite; }
 @keyframes introBgIn{ to{ opacity:1; transform:scale(1); } }
 @keyframes introBgIdle{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.025); } }
 .intro-stage{ position:relative; width:min(920px, 86vw); aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; }
-.intro-logo{ display:block; width:52%; opacity:0; transform:scaleX(.08) scaleY(1);
+.intro-logo{ display:block; width:52%; opacity:0; transform:scaleX(.08) scaleY(1); will-change:transform,opacity;
   animation: introLogoIn .8s cubic-bezier(.16,.9,.25,1) .35s forwards, introLogoIdle 2.6s ease-in-out 1.15s infinite; }
 @keyframes introLogoIn{
   0%{ opacity:0; transform:scaleX(.08) scaleY(1); }
@@ -81,7 +82,7 @@ button{font-family:inherit;}
   100%{ opacity:1; transform:scaleX(1) scaleY(1); }
 }
 @keyframes introLogoIdle{ 0%,100%{ transform:scale(1) rotate(0deg); } 50%{ transform:scale(1.025) rotate(-1deg); } }
-.intro-tag{ position:absolute; font-family:var(--font-info); font-size:clamp(15px, 2vw, 23px); letter-spacing:.01em;
+.intro-tag{ position:absolute; font-family:var(--font-info); font-size:clamp(15px, 2vw, 23px); letter-spacing:.01em; will-change:transform,opacity;
   padding:10px 20px; white-space:nowrap; opacity:0; transform:translateY(10px); }
 @keyframes introTagIn{ to{ opacity:1; transform:translateY(0); } }
 @keyframes tagFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
@@ -269,7 +270,7 @@ button{font-family:inherit;}
 <div id="intro">
   <div class="intro-bg"></div>
   <div class="intro-stage">
-    <img class="intro-logo" src="./logo.svg" alt="Do Docs!" />
+    <img class="intro-logo" src="./intro-logo.png" alt="Do Docs!" />
     <span class="intro-tag purple t1">2026년 콘텐츠 창의인재동반사업</span>
     <span class="intro-tag white t2">dodocs.mediact.org</span>
     <span class="intro-tag white t3">Do Docs!</span>
