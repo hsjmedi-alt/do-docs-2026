@@ -332,67 +332,67 @@ function driveImg(url, size){
   return "https://lh3.googleusercontent.com/d/" + m[1] + (size ? ("=w" + size) : "");
 }
 
-/* CSV 방식(out:csv)이 이 시트에서 필드가 뒤섞여 나오는 문제가 있어 gviz의 JSON 응답(out:json)으로 방식을 변경.
-   gviz가 헤더 행을 자동 인식하지 못하면 cols[].label이 전부 비어있는 채로 올 수 있어서,
-   그런 경우 rows[0]의 실제 값을 헤더로 직접 사용하도록 이중으로 처리한다. */
-function mapGvizTable(table){
-  var norm = function(s){ return (s || "").toString().trim().toLowerCase(); };
-  var cellRaw = function(row, i){
-    if (!row || !row.c || !row.c[i]) return "";
-    var v = row.c[i].v;
-    return (v === null || v === undefined) ? "" : String(v);
-  };
+/* gviz(/gviz/tq)가 이 시트에서는 어떤 방식(csv/json, range 지정 여부)으로도 표 구조를 계속 잘못 인식해서,
+   구글이 공식 안내하는 "웹에 게시(Publish to web)" CSV 주소로 완전히 교체 — 실제로 정상적인 행 구조로 나오는 것을 확인함 */
+var PUBLISHED_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTv7azg9hc1Nb-kStAYOuBuqvsI39SC0jqupRW1vdJFENj8FdwadBvvkPexBGF960vhHczu85ZwH0fk/pub?gid=626529204&single=true&output=csv";
 
-  var header = table.cols.map(function(c){ return norm(c.label || ""); });
-  var dataRows = table.rows || [];
-  var headerLooksEmpty = header.every(function(h){ return h === ""; });
-
-  if (headerLooksEmpty && dataRows.length){
-    /* cols[].label이 비어있으면 gviz가 헤더 자동인식에 실패한 것 — rows[0]를 헤더로 대신 사용 */
-    header = dataRows[0].c.map(function(c, i){ return norm(c ? c.v : ""); });
-    dataRows = dataRows.slice(1);
+function parseCSV(text){
+  var rows = [], row = [], field = "", inQuotes = false;
+  for (var i = 0; i < text.length; i++){
+    var c = text[i];
+    if (inQuotes){
+      if (c === '"'){ if (text[i+1] === '"'){ field += '"'; i++; } else { inQuotes = false; } }
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ""; }
+      else if (c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+      else if (c === '\r'){}
+      else field += c;
+    }
   }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
 
+function mapRows(rows){
+  var norm = function(s){ return (s || "").replace(/^\uFEFF/, "").trim().toLowerCase(); };
+  var header = rows[0].map(norm);
   var idx = function(name){ return header.indexOf(norm(name)); };
   var idxAny = function(names){
     for (var n = 0; n < names.length; n++){ var i = idx(names[n]); if (i !== -1) return i; }
     return -1;
   };
-  var cell = function(row, i){ return i === -1 ? "" : cellRaw(row, i); };
-
   var out = [];
-  dataRows.forEach(function(row){
-    if (!row || !row.c) return;
-    var title = cell(row, idx("title"));
-    if (!title) return;
+  for (var i = 1; i < rows.length; i++){
+    var r = rows[i];
+    var title = r[idx("title")];
+    if (!title) continue;
     out.push({
-      no: cell(row, idx("no")), title: title, titleEn: cell(row, idx("titleEn")),
-      director: cell(row, idx("director")), directorInfo: cell(row, idx("director info")),
-      staff: cell(row, idx("staff")), stage: cell(row, idx("stage")), runtime: cell(row, idx("runtime")),
-      format: cell(row, idx("format")), genre: cell(row, idxAny(["genre", "theme"])), status: cell(row, idx("status")),
-      target: cell(row, idx("target")), synopsis: cell(row, idx("synopsis")), quote: cell(row, idx("quote")),
-      looking: cell(row, idx("looking")).split(",").map(function(s){ return s.trim(); }).filter(Boolean),
-      mainImage: cell(row, idx("mainImage")),
-      stills: cell(row, idx("stills")).split(",").map(function(s){ return s.trim(); }).filter(Boolean),
-      interviewYoutubeId: cell(row, idx("interviewYoutubeId")),
-      trailerYoutubeId: cell(row, idx("trailerYoutubeId"))
+      no: r[idx("no")] || "", title: title, titleEn: r[idx("titleEn")] || "",
+      director: r[idx("director")] || "", directorInfo: r[idx("director info")] || "",
+      staff: r[idx("staff")] || "", stage: r[idx("stage")] || "", runtime: r[idx("runtime")] || "",
+      format: r[idx("format")] || "", genre: r[idxAny(["genre", "theme"])] || "", status: r[idx("status")] || "",
+      target: r[idx("target")] || "", synopsis: r[idx("synopsis")] || "", quote: r[idx("quote")] || "",
+      looking: (r[idx("looking")] || "").split(",").map(function(s){ return s.trim(); }).filter(Boolean),
+      mainImage: r[idx("mainImage")] || "",
+      stills: (r[idx("stills")] || "").split(",").map(function(s){ return s.trim(); }).filter(Boolean),
+      interviewYoutubeId: r[idx("interviewYoutubeId")] || "",
+      trailerYoutubeId: r[idx("trailerYoutubeId")] || ""
     });
-  });
+  }
   return out;
 }
 
 async function fetchFilmsLive(){
   try{
-    /* range를 명시적으로 지정 — gviz가 표 범위를 자동 인식하다가 이 파일에서 유독 실패하는 문제를 우회 */
-    var url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&sheet=" + encodeURIComponent(SHEET_TAB) + "&range=A1:S200";
-    var res = await fetch(url, { mode: "cors" });
+    var res = await fetch(PUBLISHED_CSV_URL, { mode: "cors", cache: "no-store" });
     if (!res.ok) throw new Error("bad response " + res.status);
     var text = await res.text();
-    var match = text.match(/\{[\s\S]*\}/); /* google.visualization.Query.setResponse({...}); JS 래퍼를 벗겨서 순수 JSON만 추출 */
-    if (!match) throw new Error("gviz 응답에서 JSON을 찾지 못함");
-    var data = JSON.parse(match[0]);
-    if (!data.table || !data.table.rows) throw new Error("table.rows 없음");
-    var out = mapGvizTable(data.table);
+    text = text.replace(/^\uFEFF/, "");
+    var rows = parseCSV(text);
+    if (!rows.length) throw new Error("empty");
+    var out = mapRows(rows);
     if (!out.length) throw new Error("헤더 매칭 결과 0행 — 컬럼명을 확인하세요");
     return out;
   } catch (e){
