@@ -640,7 +640,7 @@ fetchFilmsLive().then(function(live){ if (live && live.length) renderAll(live); 
   (function(){
     var banner = document.getElementById("showcase-banner");
     var now = new Date();
-    var deadline = new Date("2025-11-06T00:00:00+09:00"); // 11/5 자정 이후 숨김
+    var deadline = new Date("2026-11-06T00:00:00+09:00"); // 11/5 자정 이후 숨김
     if (now >= deadline) {
       banner.style.display = "none";
     } else {
