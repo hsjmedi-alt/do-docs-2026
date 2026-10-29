@@ -16,7 +16,7 @@
 <link rel="icon" href="./favicon.ico" />
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
 <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-<title>Do Docs! 2026 — 기록되지 않으면 사라지는 것들에 대한 열다섯 편의 답장</title>
+<title>Do Docs! 2026 — 기록되지 않으면 사라지는 것들에 대한 답장</title>
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Do Docs! - 2026 콘텐츠 창의인재동반사업 지원작 쇼케이스" />
 <meta property="og:description" content="신진창작자들이 완성해가는 다큐멘터리, 투자·편성·배급·상영을 위한 프로젝트 노트" />
@@ -255,7 +255,7 @@ button{font-family:inherit;}
 
 <section class="hero">
   <img class="hero-logo" src="./logo.svg" alt="Do Docs!" />
-  <h1 class="headline" id="headline">기록되지 않으면<br />사라지는 것들에 대한<br /><span id="headline-count">열여덟</span> 편의 답장</h1>
+  <h1 class="headline" id="headline">기록되지 않으면<br />사라지는 것들에 대한<br />답장</h1>
   <p class="sub">2026년 콘텐츠 창의인재동반사업 [Do Docs 다큐멘터리 신진 창작자 프로젝트] 지원작을 소개합니다.
 다큐멘터리 전문가들의 멘토링을 거쳐 세상을 만날 준비를 하고 있는 이 작품들의 파트너가 되어 주세요.
 신진 창작자들과 함께할 제작사·배급사·유관단체를 기다립니다.</p>
@@ -563,7 +563,7 @@ function renderDetailList(films){
 
 function renderAll(films){
   renderMarquee(films.length);
-  document.getElementById("headline-count").textContent = koreanCount(films.length);
+  // document.getElementById("headline-count").textContent = koreanCount(films.length);
   renderStrip(films);
   renderDetailList(films);
 }
